@@ -1,20 +1,7 @@
-PROJ_NAME = pms
-TEST_PROJ_NAME = test_$(PROJ_NAME)
-
-BUILD_DIR = Build
-
-SRC = src/PMS_definitions.c\
-PMS_main.c
-
-TEST_SRC = test/test_$(PROJ_NAME).c\
-unity/unity.c\
-src/test_definitions.c
-
-INC = -Iinc\
--Iunity
+PROJ_NAME = calender
+SRC = Project_Calendar.c printCalender.c numberOfDays.c getMonthName.c dayNumber.c
 
 
-#To check if the OS is Windows or Linux and set the executable file extension and delete command accordingly
 ifdef OS
    RM = del /q
    FixPath = $(subst /,\,$1)
@@ -27,59 +14,34 @@ else
    endif
 endif
 
-# Makefile will not run target command if the name with file already exists. To override, use .PHONY
-.PHONY : all test coverage run clean doc
+ 
+INC=-IInclude\
+-Iunity\
 
-# COMPILE CODE
-all:$(BUILD_DIR)
-	gcc -Wall -g $(SRC) $(INC) -o $(call FixPath,$(BUILD_DIR)/$(PROJ_NAME).$(EXEC)) -lm
-
-# RUN CODE
-run: all
-	$(call FixPath,$(BUILD_DIR)/$(PROJ_NAME).$(EXEC))
-
-# UNIT TESTING
-test:$(BUILD_DIR)
-	gcc $(TEST_SRC) $(INC) -o $(call FixPath,$(BUILD_DIR)/$(TEST_PROJ_NAME).$(EXEC)) -lm
-	$(call FixPath,$(BUILD_DIR)/$(TEST_PROJ_NAME).$(EXEC))
-
-# COVERAGE CHECK
-# coverage:${PROJECT_NAME}
-# 	gcc -fprofile-arcs -ftest-coverage -o $(call FixPath,$(BUILD_DIR)/$(TEST_PROJ_NAME).$(EXEC)) $(INC) $(SRC) project_main.c 
-# 	$(call FixPath,$(BUILD_DIR)/$(TEST_PROJ_NAME).$(EXEC))
-# 	mv again.gcda clear.gcda explor.gcda name.gcda number.gcda quit.gcda screen.gcda symbol.gcda again.gcno clear.gcno explor.gcno name.gcno number.gcno quit.gcno screen.gcno symbol.gcno src
-# 	gcov -a -b -c $(SRC) project_main.c
-
-coverageCheck:$(BUILD_DIR)
-	gcc -fprofile-arcs -ftest-coverage -fPIC -O0 $(TEST_SRC) $(INC) -o $(call FixPath,$(BUILD_DIR)/$(TEST_PROJ_NAME).$(EXEC)) -lm
-	$(call FixPath,$(BUILD_DIR)/$(TEST_PROJ_NAME).$(EXEC))
+build : $(SRC) 
+	gcc $(SRC) $(INC) -o $(call FixPath,$(PROJ_NAME).$(EXEC)) -lm
 
 
-#MAKE DIRECTORY
-doc:
-	make -C doc
-$(BUILD_DIR):
-	mkdir $(BUILD_DIR)
+build_test : 
+	gcc $(TEST_SRC) $(INC) -o $(call FixPath,$(PROJ_NAME).$(EXEC)) -lm
 
-#CLEAN EXTRA FILES
-clean:
-	$(RM) $(call FixPath,$(BUILD_DIR)/*)
-	$(RM) *.c.gcov *.gcno *.gcda
-	$(RM) $(call FixPath,src/*.gcno)
-	$(RM) $(call FixPath,src/*.gcda)
-	#make clean -C doc
-	rmdir $(BUILD_DIR) 
-	#doc/html
+run : build
+	./$(call FixPath,$(PROJ_NAME).$(EXEC))
 
-# VALGRIND MEMORY LEAK
-leak:all
-	valgrind $(call FixPath,$(BUILD_DIR)/$(TEST_PROJ_NAME).$(EXEC))
+run_test : build_test
+	./$(call FixPath,$(PROJ_NAME).$(EXEC))
 
-# CPPCHECK STATIC TEST
-check:
-	cppcheck --enable=all $(INC)--suppress=missingIncludeSystem main.c $(SRC)
-	#--check-config : when error description needed
+staticcheck : 
+	cppcheck --enable=all 3_IMPLIMENTATION
 
-# GDB DEBUG
-debug:all
-	gdb $(call FixPath,$(BUILD_DIR)/$(PROJ_NAME).$(EXEC))
+dynamic_analysis : build_test
+	valgrind ./$(call FixPath,$(PROJ_NAME).$(EXEC)) 
+	
+		
+	
+coverage:
+	gcc -fprofile-arcs -ftest-coverage $(SRC) $(INC) -o $(call FixPath,$(PROJ_NAME).$(EXEC)) -lm
+	gcov -a ./$(call FixPath,$(PROJ_NAME).$(EXEC))
+
+Clean:
+	$(RM) $(call FixPath,*.out)
